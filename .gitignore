@@ -1,0 +1,6 @@
+node_modules/
+dist/
+dsh-runtime/
+runtime/node.exe
+assets/icon.png
+package-lock.json

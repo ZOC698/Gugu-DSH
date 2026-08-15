@@ -1,0 +1,69 @@
+{
+  "name": "deepseek-harness-gui",
+  "version": "0.3.0",
+  "description": "Independent Windows desktop shell for DeepSeek Harness",
+  "main": "main.cjs",
+  "author": "noctice",
+  "license": "MIT",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test tests/*.test.cjs",
+    "prepare:runtime": "node scripts/prepare-runtime.cjs",
+    "pack:win": "npm run prepare:runtime && electron-builder --win portable --x64"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis-plugin-group": "1.0.1",
+    "@deepseek-ai/dsh": "0.1.0-rc.6",
+    "electron": "43.4.0",
+    "electron-builder": "26.15.3",
+    "sharp": "0.35.3"
+  },
+  "build": {
+    "appId": "ai.deepseek.harness.gugu",
+    "productName": "Gugu DSH",
+    "asar": false,
+    "npmRebuild": false,
+    "buildDependenciesFromSource": false,
+    "compression": "normal",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.cjs",
+      "backend.cjs",
+      "connection.cjs",
+      "splash.html",
+      "assets/**/*",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.md"
+    ],
+    "extraResources": [
+      {
+        "from": "dsh-runtime/node.exe",
+        "to": "dsh-runtime/node.exe"
+      },
+      {
+        "from": "dsh-runtime/NODE-LICENSE.txt",
+        "to": "dsh-runtime/NODE-LICENSE.txt"
+      },
+      {
+        "from": "dsh-runtime/node_modules",
+        "to": "dsh-runtime/node_modules"
+      }
+    ],
+    "win": {
+      "icon": "assets/gugu.ico",
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "DeepSeekHarnessGUI-${version}-Windows-x64.${ext}"
+    }
+  }
+}
