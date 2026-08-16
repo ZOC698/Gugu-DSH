@@ -29,7 +29,9 @@ const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const result = spawnSync(
   npmCommand,
   ['install', '--omit=dev', '--no-audit', '--no-fund'],
-  { cwd: runtimeDir, stdio: 'inherit' },
+  // Windows resolves npm through its .cmd shim, which spawn() refuses
+  // without a shell since the CVE-2024-27980 hardening (EINVAL).
+  { cwd: runtimeDir, stdio: 'inherit', shell: process.platform === 'win32' },
 );
 
 if (result.error) throw result.error;
