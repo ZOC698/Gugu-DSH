@@ -1,7 +1,7 @@
 const fs = require('node:fs')
 const path = require('node:path')
 const { pathToFileURL } = require('node:url')
-const { app, BrowserWindow, Menu, dialog, shell } = require('electron')
+const { app, BrowserWindow, Menu, dialog, shell, Tray, nativeImage } = require('electron')
 const { launchBackend, stopBackend, probeHarness } = require('./backend.cjs')
 const { DEFAULT_DSH_URL, collectConnectionCandidates, normalizeHarnessUrl } = require('./connection.cjs')
 
@@ -262,6 +262,31 @@ function createMenu() {
   ])
 }
 
+function showMainWindow() {
+  if (mainWindow === undefined || mainWindow.isDestroyed()) return
+  if (mainWindow.isMinimized()) mainWindow.restore()
+  mainWindow.show()
+  mainWindow.focus()
+}
+
+let tray
+function createTray() {
+  // Tray is a nicety, never a requirement: when the icon asset is missing or
+  // the tray cannot be created, closing the window simply quits as before.
+  try {
+    const iconPath = path.join(appRoot(), 'assets', 'gugu.ico')
+    if (!fs.existsSync(iconPath)) return
+    tray = new Tray(nativeImage.createFromPath(iconPath))
+    tray.setToolTip('咕嘎 DSH')
+    tray.setContextMenu(Menu.buildFromTemplate([
+      { label: '显示主窗口', click: () => showMainWindow() },
+      { type: 'separator' },
+      { label: '退出', click: () => { quitting = true; app.quit() } },
+    ]))
+    tray.on('click', () => showMainWindow())
+  } catch { }
+}
+
 async function createWindow() {
   const bounds = loadWindowBounds()
   mainWindow = new BrowserWindow({
@@ -286,7 +311,15 @@ async function createWindow() {
     },
   })
   mainWindow.once('ready-to-show', () => mainWindow.show())
-  mainWindow.on('close', saveWindowBounds)
+  mainWindow.on('close', event => {
+    saveWindowBounds()
+    // Closing the window hides to the tray instead of quitting; the real
+    // exit path is 应用 → 退出 or the tray menu (both set `quitting`).
+    if (!quitting) {
+      event.preventDefault()
+      mainWindow.hide()
+    }
+  })
   mainWindow.webContents.on('render-process-gone', (_event, details) => {
     if (!quitting) splash('界面进程已停止', `原因：${details.reason}`)
   })
@@ -295,6 +328,7 @@ async function createWindow() {
   })
   installNavigationPolicy(mainWindow)
   Menu.setApplicationMenu(createMenu())
+  createTray()
   splash('正在准备桌面窗口…')
   await startHarness()
 }

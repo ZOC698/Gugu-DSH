@@ -1,6 +1,6 @@
 {
   "name": "deepseek-harness-gui",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Independent Windows desktop shell for DeepSeek Harness",
   "main": "main.cjs",
   "author": "noctice",
@@ -63,7 +63,7 @@
       ]
     },
     "portable": {
-      "artifactName": "DeepSeekHarnessGUI-${version}-Windows-x64.${ext}"
+      "artifactName": "Gugu-DSH-${version}-Portable-Windows-x64.${ext}"
     }
   }
 }
