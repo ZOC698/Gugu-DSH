@@ -1,6 +1,6 @@
 {
   "name": "deepseek-harness-gui",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Independent Windows desktop shell for DeepSeek Harness",
   "main": "main.cjs",
   "author": "noctice",
@@ -10,12 +10,16 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test tests/*.test.cjs",
+    "smoke:packaged": "node scripts/smoke-packaged.cjs",
     "prepare:runtime": "node scripts/prepare-runtime.cjs",
-    "pack:win": "npm run prepare:runtime && electron-builder --win portable --x64"
+    "pack:win": "npm run prepare:runtime && electron-builder --win nsis portable --x64 --publish never"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.9"
   },
   "devDependencies": {
     "@deepseek-ai/cordis-plugin-group": "1.0.1",
-    "@deepseek-ai/dsh": "0.1.0-rc.6",
+    "@deepseek-ai/dsh": "0.1.1-rc.2",
     "electron": "43.4.0",
     "electron-builder": "26.15.3",
     "sharp": "0.35.3"
@@ -34,6 +38,7 @@
       "main.cjs",
       "backend.cjs",
       "connection.cjs",
+      "updater.cjs",
       "splash.html",
       "assets/**/*",
       "LICENSE",
@@ -53,9 +58,18 @@
         "to": "dsh-runtime/node_modules"
       }
     ],
+    "publish": {
+      "provider": "github",
+      "owner": "ZOC698",
+      "repo": "Gugu-DSH"
+    },
     "win": {
       "icon": "assets/gugu.ico",
       "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
         {
           "target": "portable",
           "arch": ["x64"]
@@ -64,6 +78,15 @@
     },
     "portable": {
       "artifactName": "Gugu-DSH-${version}-Portable-Windows-x64.${ext}"
+    },
+    "nsis": {
+      "artifactName": "Gugu-DSH-${version}-Setup-Windows-x64.${ext}",
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Gugu DSH"
     }
   }
 }

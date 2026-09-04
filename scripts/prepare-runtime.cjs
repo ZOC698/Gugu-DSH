@@ -17,22 +17,56 @@ writeFileSync(
   `${JSON.stringify({
     name: 'gugu-dsh-runtime',
     private: true,
-    version: '0.3.0',
+    version: '0.3.2',
     dependencies: {
-      '@deepseek-ai/dsh': '0.1.0-rc.6',
+      '@deepseek-ai/dsh': '0.1.1-rc.2',
     },
   }, null, 2)}\n`,
   'utf8',
 );
 
-const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+// Keep pnpm's dependency-build policy explicit even though this generated
+// package is installed outside the repository workspace. These packages are
+// already approved by the repository's pnpm-workspace.yaml.
+writeFileSync(
+  path.join(runtimeDir, 'pnpm-workspace.yaml'),
+  `allowBuilds:
+  '@deepseek-ai/dsh-subprocess-local': true
+  '@google/genai': true
+  koffi: true
+  node-pty: true
+  protobufjs: true
+onlyBuiltDependencies:
+  - '@deepseek-ai/dsh-subprocess-local'
+  - '@google/genai'
+  - koffi
+  - node-pty
+  - protobufjs
+`,
+  'utf8',
+);
+
+const pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 const result = spawnSync(
-  npmCommand,
-  ['install', '--omit=dev', '--no-audit', '--no-fund'],
-  // Windows resolves npm through its .cmd shim, which spawn() refuses
+  pnpmCommand,
+  [
+    'install',
+    '--prod',
+    '--no-frozen-lockfile',
+    '--package-import-method',
+    'copy',
+    '--config.node-linker=hoisted',
+  ],
+  // Windows resolves pnpm through its .cmd shim, which spawn() refuses
   // without a shell since the CVE-2024-27980 hardening (EINVAL).
   { cwd: runtimeDir, stdio: 'inherit', shell: process.platform === 'win32' },
 );
 
 if (result.error) throw result.error;
 if (result.status !== 0) process.exit(result.status ?? 1);
+
+rmSync(path.join(runtimeDir, 'pnpm-workspace.yaml'), { force: true });
+rmSync(path.join(runtimeDir, 'pnpm-lock.yaml'), { force: true });
+for (const metadata of ['.modules.yaml', '.package-map.json', '.pnpm-workspace-state-v1.json']) {
+  rmSync(path.join(runtimeDir, 'node_modules', metadata), { force: true });
+}

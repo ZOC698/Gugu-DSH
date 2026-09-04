@@ -4,12 +4,14 @@ const { pathToFileURL } = require('node:url')
 const { app, BrowserWindow, Menu, dialog, shell, Tray, nativeImage } = require('electron')
 const { launchBackend, stopBackend, probeHarness } = require('./backend.cjs')
 const { DEFAULT_DSH_URL, collectConnectionCandidates, normalizeHarnessUrl } = require('./connection.cjs')
+const { createUpdateManager } = require('./updater.cjs')
 
 let mainWindow
 let backend
 let restarting = false
 let quitting = false
 let backendOrigin
+let updateManager
 
 app.setName('Gugu DSH')
 const hasLock = app.requestSingleInstanceLock()
@@ -40,6 +42,14 @@ function saveSettings(patch) {
   try {
     fs.mkdirSync(app.getPath('userData'), { recursive: true })
     fs.writeFileSync(settingsPath(), JSON.stringify({ ...loadSettings(), ...patch }, null, 2))
+  } catch { }
+}
+
+function writeAppLog(message) {
+  try {
+    const directory = path.join(app.getPath('userData'), 'logs')
+    fs.mkdirSync(directory, { recursive: true })
+    fs.appendFileSync(path.join(directory, 'desktop.log'), `[${new Date().toISOString()}] ${message}\n`)
   } catch { }
 }
 
@@ -230,6 +240,7 @@ function createMenu() {
       submenu: [
         { label: '重新连接 / 重启后端', accelerator: 'CmdOrCtrl+Shift+R', click: () => void restartHarness() },
         { label: '连接自定义 DSH 地址…', accelerator: 'CmdOrCtrl+Alt+D', click: () => showConnectionEditor() },
+        { label: '检查更新…', click: () => void updateManager?.check({ manual: true }) },
         { label: '打开日志目录', click: () => void shell.openPath(path.join(app.getPath('userData'), 'logs')) },
         { type: 'separator' },
         { role: 'quit', label: '退出' },
@@ -280,6 +291,7 @@ function createTray() {
     tray.setToolTip('咕嘎 DSH')
     tray.setContextMenu(Menu.buildFromTemplate([
       { label: '显示主窗口', click: () => showMainWindow() },
+      { label: '检查更新…', click: () => void updateManager?.check({ manual: true }) },
       { type: 'separator' },
       { label: '退出', click: () => { quitting = true; app.quit() } },
     ]))
@@ -327,10 +339,20 @@ async function createWindow() {
     void decorateHarnessWindow()
   })
   installNavigationPolicy(mainWindow)
+  updateManager = createUpdateManager({
+    app,
+    dialog,
+    shell,
+    getWindow: () => mainWindow,
+    loadSettings,
+    saveSettings,
+    log: writeAppLog,
+  })
   Menu.setApplicationMenu(createMenu())
   createTray()
   splash('正在准备桌面窗口…')
   await startHarness()
+  updateManager.start()
 }
 
 app.on('second-instance', () => {
@@ -343,6 +365,7 @@ app.on('second-instance', () => {
 app.on('before-quit', () => {
   quitting = true
   saveWindowBounds()
+  updateManager?.stop()
   stopBackend(backend?.child)
 })
 
