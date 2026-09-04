@@ -90,6 +90,10 @@ function assertRuntimeFiles(paths) {
   }
 }
 
+function buildDshArgs(entry, port) {
+  return [entry, 'web', '--no-open', '--host', '127.0.0.1', '--port', String(port)]
+}
+
 async function launchBackend({ runtimeRoot, cwd, logDirectory, onExit }) {
   const runtime = resolveRuntimePaths(runtimeRoot)
   assertRuntimeFiles(runtime)
@@ -100,7 +104,7 @@ async function launchBackend({ runtimeRoot, cwd, logDirectory, onExit }) {
 
   const port = await findFreePort()
   const url = `http://127.0.0.1:${port}`
-  const child = spawn(runtime.nodeExecutable, [runtime.dshEntry, 'web', '--host', '127.0.0.1', '--port', String(port)], {
+  const child = spawn(runtime.nodeExecutable, buildDshArgs(runtime.dshEntry, port), {
     cwd,
     env: { ...process.env, DSH_GUI_HOST: 'electron' },
     windowsHide: true,
@@ -143,6 +147,7 @@ module.exports = {
   waitForHttp,
   resolveRuntimePaths,
   assertRuntimeFiles,
+  buildDshArgs,
   launchBackend,
   stopBackend,
 }

@@ -2,7 +2,7 @@ const assert = require('node:assert/strict')
 const http = require('node:http')
 const path = require('node:path')
 const test = require('node:test')
-const { findFreePort, probeHttp, probeHarness, resolveRuntimePaths } = require('../backend.cjs')
+const { buildDshArgs, findFreePort, probeHttp, probeHarness, resolveRuntimePaths } = require('../backend.cjs')
 const { DEFAULT_DSH_URL, collectConnectionCandidates, dshUrlFromArgs, normalizeHarnessUrl } = require('../connection.cjs')
 
 test('findFreePort returns a bindable loopback port', async () => {
@@ -44,6 +44,18 @@ test('resolveRuntimePaths stays inside the dedicated runtime root', () => {
   const paths = resolveRuntimePaths(root)
   assert.equal(paths.nodeExecutable, path.join(root, 'node.exe'))
   assert.equal(paths.dshEntry, path.join(root, 'node_modules', '@deepseek-ai', 'dsh', 'lib', 'bin.js'))
+})
+
+test('buildDshArgs prevents the embedded backend from opening a browser', () => {
+  assert.deepEqual(buildDshArgs('C:\\runtime\\bin.js', 12345), [
+    'C:\\runtime\\bin.js',
+    'web',
+    '--no-open',
+    '--host',
+    '127.0.0.1',
+    '--port',
+    '12345',
+  ])
 })
 
 test('normalizeHarnessUrl accepts local addresses and normalizes their origins', () => {
