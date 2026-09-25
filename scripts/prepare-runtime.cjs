@@ -5,19 +5,21 @@ const { spawnSync } = require('node:child_process');
 const projectRoot = path.resolve(__dirname, '..');
 const runtimeDir = path.join(projectRoot, 'dsh-runtime');
 const nodeLicense = path.join(projectRoot, 'runtime', 'NODE-LICENSE.txt');
+const runtimeLock = path.join(projectRoot, 'runtime', 'DSH-pnpm-lock.yaml');
 
 rmSync(runtimeDir, { recursive: true, force: true });
 mkdirSync(runtimeDir, { recursive: true });
 
 copyFileSync(process.execPath, path.join(runtimeDir, 'node.exe'));
 copyFileSync(nodeLicense, path.join(runtimeDir, 'NODE-LICENSE.txt'));
+copyFileSync(runtimeLock, path.join(runtimeDir, 'pnpm-lock.yaml'));
 
 writeFileSync(
   path.join(runtimeDir, 'package.json'),
   `${JSON.stringify({
     name: 'gugu-dsh-runtime',
     private: true,
-    version: '0.3.2',
+    version: '0.3.3',
     dependencies: {
       '@deepseek-ai/dsh': '0.1.1-rc.2',
     },
@@ -52,7 +54,7 @@ const result = spawnSync(
   [
     'install',
     '--prod',
-    '--no-frozen-lockfile',
+    '--frozen-lockfile',
     '--package-import-method',
     'copy',
     '--config.node-linker=hoisted',

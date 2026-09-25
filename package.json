@@ -1,6 +1,6 @@
 {
   "name": "deepseek-harness-gui",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Independent Windows desktop shell for DeepSeek Harness",
   "main": "main.cjs",
   "author": "noctice",
