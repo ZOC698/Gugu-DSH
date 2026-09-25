@@ -19,20 +19,19 @@
 
 ## 1. 版本号（发布前必须处理）
 
-- 当前 `package.json` 的 `version` 是 `0.3.2`
-- GitHub 上**已存在 `v0.3.0` 的 Release**（同一仓库）
-- 本次版本已升级为 `0.3.2`（自动更新 + DSH 兼容升级），避免与已有 tag 冲突。
+- 当前 `package.json` 的 `version` 是 `0.3.3`
+- GitHub 上**已存在 `v0.3.2` 的 Release**（同一仓库）
+- 本次版本已升级为 `0.3.3`（正式程序图标更新），避免与已有 tag 冲突。
 - 如果版本号再次变化，必须修改 `package.json` 后重新执行第 3 节打包，产物文件名会自动带新版本号。
   - 如果用户明确说继续用 0.3.0（例如他决定删旧 Release），以用户答复为准
 
 ---
 
-## 2. 相对 0.3.1 的变更内容（写进 Release Notes）
+## 2. 相对 0.3.2 的变更内容（写进 Release Notes）
 
-1. **安装版自动更新**：从 `ZOC698/Gugu-DSH` 的 GitHub Releases 检查、后台下载，并提示一键重启安装。
-2. **便携版更新提醒**：检测到新版本后打开经过固定域名校验的项目 Release 页面，不尝试覆盖运行中的单文件程序。
-3. **手动与周期检查**：应用菜单和托盘菜单均可手动检查；启动后和每六小时自动检查。
-4. **官方运行时升级**：内置 `@deepseek-ai/dsh` 从 `0.1.0-rc.6` 升至 `0.1.1-rc.2`，发布前必须完成隔离兼容测试。
+1. **新程序图标**：安装版、便携版和新建快捷方式均使用新的小咕嘎透明图标。
+2. **运行时可复现**：使用仓库内的 `runtime/DSH-pnpm-lock.yaml` 固定已验证的间接依赖，避免同一 DSH 版本因依赖漂移而启动失败。
+3. **DSH 版本不变**：内置 `@deepseek-ai/dsh` 仍为 `0.1.1-rc.2`。
 
 ---
 
@@ -74,22 +73,21 @@ npm run pack:win
 ### 方式 A：GitHub CLI（推荐）
 
 ```powershell
-# 以 0.3.2 为例；换用实际版本号
-$assets = Get-Item dist\Gugu-DSH-0.3.2-Setup-Windows-x64.exe, dist\Gugu-DSH-0.3.2-Setup-Windows-x64.exe.blockmap, dist\Gugu-DSH-0.3.2-Portable-Windows-x64.exe, dist\latest.yml
+# 以 0.3.3 为例；换用实际版本号
+$assets = Get-Item dist\Gugu-DSH-0.3.3-Setup-Windows-x64.exe, dist\Gugu-DSH-0.3.3-Setup-Windows-x64.exe.blockmap, dist\Gugu-DSH-0.3.3-Portable-Windows-x64.exe, dist\latest.yml
 $assets | ForEach-Object { "{0}  {1}" -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash, $_.Name } | Set-Content dist\SHA256SUMS.txt
 
-gh release create v0.3.2 $assets.FullName dist\SHA256SUMS.txt `
+gh release create v0.3.3 $assets.FullName dist\SHA256SUMS.txt `
   --repo ZOC698/Gugu-DSH `
-  --title "咕嘎 DSH 0.3.2" `
+  --title "咕嘎 DSH 0.3.3" `
   --draft `
   --notes @"
-咕嘎 DSH 0.3.2（社区制作，非 DeepSeek 官方发行版）
+咕嘎 DSH 0.3.3（社区制作，非 DeepSeek 官方发行版）
 
-新增：
-- 安装版自动检查、下载并一键重启更新
-- 便携版安全更新提醒
-升级：
-- 内置 @deepseek-ai/dsh 0.1.1-rc.2
+更新：
+- 使用新的小咕嘎透明程序图标
+- 固定已验证的内置运行时依赖，避免重复打包时发生版本漂移
+- 内置 @deepseek-ai/dsh 仍为 0.1.1-rc.2
 
 SHA-256 见 SHA256SUMS.txt
 "@
@@ -98,13 +96,13 @@ SHA-256 见 SHA256SUMS.txt
 以上命令只创建 Draft。核对版本号、说明、全部更新资产、文件大小和 SHA-256 后，必须再次获得用户明确确认，才能执行：
 
 ```powershell
-gh release edit v0.3.2 --repo ZOC698/Gugu-DSH --draft=false
+gh release edit v0.3.3 --repo ZOC698/Gugu-DSH --draft=false
 ```
 
 ### 方式 B：网页手动发布
 
 1. 打开 https://github.com/ZOC698/Gugu-DSH/releases/new
-2. Tag：`v0.3.2`；标题：`咕嘎 DSH 0.3.2`
+2. Tag：`v0.3.3`；标题：`咕嘎 DSH 0.3.3`
 3. 上传安装版、安装版 blockmap、便携版、`latest.yml` 与 SHA256 文件
 4. Release notes 用第 2、5 节内容
 5. 先保存为 Draft；核对完成并获得用户明确确认后再发布

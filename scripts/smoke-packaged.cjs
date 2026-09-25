@@ -51,7 +51,6 @@ async function main() {
       APPDATA: appData,
       LOCALAPPDATA: localAppData,
       USERPROFILE: smokeRoot,
-      HOME: smokeRoot,
       GUGU_DSH_URL: harnessUrl,
     },
     windowsHide: true,
